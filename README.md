@@ -1,169 +1,91 @@
-<h2 align="center">Trankit: A Light-Weight Transformer-based Python Toolkit for Multilingual Natural Language Processing</h2>
+# Pāṇinian Grammar-Inspired Interlingua for Neural Machine Translation
 
-<div align="center">
-    <a href="https://github.com/nlp-uoregon/trankit/blob/master/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/nlp-uoregon/trankit.svg?color=blue">
-    </a>
-    <a href='https://trankit.readthedocs.io/en/latest/?badge=latest'>
-    <img src='https://readthedocs.org/projects/trankit/badge/?version=latest' alt='Documentation Status' />
-    </a>
-    <a href="http://nlp.uoregon.edu/trankit">
-        <img alt="Demo Website" src="https://img.shields.io/website/http/trankit.readthedocs.io/en/latest/index.html.svg?down_color=red&down_message=offline&up_message=online">
-    </a>
-    <a href="https://pypi.org/project/trankit/">
-        <img alt="PyPI Version" src="https://img.shields.io/pypi/v/trankit?color=blue">
-    </a>
-    <a href="https://pypi.org/project/trankit/">
-        <img alt="Python Versions" src="https://img.shields.io/pypi/pyversions/trankit?colorB=blue">
-    </a>
-</div>
+## Machine Translation for low resource languages using an Interlingua
 
-[Our technical paper](https://arxiv.org/pdf/2101.03289.pdf) for Trankit won the Outstanding Demo Paper Award at [EACL 2021](https://2021.eacl.org/). Please cite the paper if you use Trankit in your research.
+Panini defines morphosyntactic properties in the form of *karaka* relations and the morphological properties of the words in a sentence. *Karaka* is a form of syntactic analysis where we capture relationships between one word pair at a time in a sentence.
 
-```bibtex
-@inproceedings{nguyen2021trankit,
-      title={Trankit: A Light-Weight Transformer-based Toolkit for Multilingual Natural Language Processing}, 
-      author={Nguyen, Minh Van and Lai, Viet Dac and Veyseh, Amir Pouran Ben and Nguyen, Thien Huu},
-      booktitle="Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations",
-      year={2021}
-}
-```
+Neural taggers such as Udify and Trankit provide a multitask learning setup that predicts both dependency parsing and morphological tags.
 
-### :boom: :boom: :boom: Trankit v1.0.0 is out:
+There are different schemes for dependency parsing. UD is the most widely adopted as it is language agnostic. Traditionally *Karaka* tags also follow a dependency scheme which is hypothesized to be better suited for Indian languages.
 
-* **90 new pretrained transformer-based pipelines for 56 languages**. The new pipelines are trained with XLM-Roberta large, which further boosts the performance significantly over 90 treebanks of the Universal Dependencies v2.5 corpus. Check out the new performance [here](https://trankit.readthedocs.io/en/latest/performance.html). This [page](https://trankit.readthedocs.io/en/latest/news.html#trankit-large) shows you how to use the new pipelines.
+### Morphosyntactic Parser
 
-* **Auto Mode for multilingual pipelines**. In the Auto Mode, the language of the input will be automatically detected, enabling the multilingual pipelines to process the input without specifying its language. Check out how to turn on the Auto Mode [here](https://trankit.readthedocs.io/en/latest/news.html#auto-mode-for-multilingual-pipelines). Thank you [loretoparisi](https://github.com/loretoparisi) for your suggestion on this.
+1. Formulated as a multitask parser
+2.  **Input**: A sentence 
+3. **Output**: 1 label per word per task
+4. Possible Tasks
+	- Syntactic Features
+		- Dependency head prediction
+		- Dependency label prediction - Ex: Karta (subject), Karma (object)
+			- Ex : `rsp`, `ras-neg`, `rh`, `k2`, `lwg_psp`, `rt`, `k2g`, `modwq`, `mk1`, `k1s`, `lwgneg`, `k4`, `undef`, `k5`, `k2s`, `nmodk1inv`, `lwgrp`
 
-* **Command-line interface** is now available to use. This helps users who are not familiar with Python programming language use Trankit easily. Check out the tutorials on this [page](https://trankit.readthedocs.io/en/latest/commandline.html).
+	- Morphological features
+		- Category - Ex: noun, avyaya, adjective, verb
+		- Gender - Ex: male, prediction
+		- Number - Ex: singular, plural
+		- Case - Ex: oblique/direct
+		- Vibhakthi
+		- TAM (Tense Aspect Mood)
+		- Person - Ex: 1st person, 2nd person, 3rd person
+		- POS tag prediction
 
-Trankit is a **light-weight Transformer-based Python** Toolkit for multilingual Natural Language Processing (NLP). It provides a trainable pipeline for fundamental NLP tasks over [100 languages](https://trankit.readthedocs.io/en/latest/pkgnames.html#trainable-languages), and 90 [downloadable](https://trankit.readthedocs.io/en/latest/pkgnames.html#pretrained-languages-their-code-names) pretrained pipelines for [56 languages](https://trankit.readthedocs.io/en/latest/pkgnames.html#pretrained-languages-their-code-names).
+13. We use a combination of these features for our experiments.
+14. We use a deep biaffine parser ([Dozat, 2016](https://arxiv.org/abs/1611.01734)) for syntactic features and a feed-forward classifier for morphological features
 
-<div align="center"><img src="https://raw.githubusercontent.com/nlp-uoregon/trankit/master/docs/source/architecture.jpg" height="300px"/></div>
 
-**Trankit outperforms the current state-of-the-art multilingual toolkit Stanza (StanfordNLP)** in many tasks over [90 Universal Dependencies v2.5 treebanks of 56 different languages](https://trankit.readthedocs.io/en/latest/performance.html#universal-dependencies-v2-5) while still being efficient in memory usage and
-speed, making it *usable for general users*.
+### Morphological Complexity
+| Morpheme | HINDI | KANNADA |
+| -------- | ----- | ------- |
+| CAT      | 26    | 22      |
+| POS      | 33    | 49      |
+| TAM      | 35    | 4565    |
+| VIB      | 887   | 4389    |
+| GEN      | 7     | 6       |
+| PERS     | 8     | 5       |
+| CASE     | 7     | 4       |
+| NUM      | 6     | 5       |
+| DEPREL   | 81    | 92      |
 
-In particular, for **English**, **Trankit is significantly better than Stanza** on sentence segmentation (**+9.36%**) and dependency parsing (**+5.07%** for UAS and **+5.81%** for LAS). For **Arabic**, our toolkit substantially improves sentence segmentation performance by **16.36%** while **Chinese** observes **14.50%** and **15.00%** improvement of UAS and LAS for dependency parsing. Detailed comparison between Trankit, Stanza, and other popular NLP toolkits (i.e., spaCy, UDPipe) in other languages can be found [here](https://trankit.readthedocs.io/en/latest/performance.html#universal-dependencies-v2-5) on [our documentation page](https://trankit.readthedocs.io/en/latest/index.html).
+### Metrics
 
-We also created a Demo Website for Trankit, which is hosted at: http://nlp.uoregon.edu/trankit
+- UAS: UAS is the performance score of a biaffine parser which predicts the dependency head 
+- LAS: LAS is the performance score of two biaffine parsers, where one predicts the dependency head, and the other predicts the dependency relation 
+- AllTags: AllTags is the average performance score measured across all the feed-forward classifiers
 
-### Installation
-Trankit can be easily installed via one of the following methods:
-#### Using pip
-```
-pip install trankit
-```
-The command would install Trankit and all dependent packages automatically. 
+### Dataset
+- Hindi dataset
+	- Train size: 14089 sentences
+	- Dev size: 1743 sentences
+	- Test size: 1804 sentences
+- Kannada dataset
+	- Train size: 13088 sentences
+	- Dev size: 2801 sentences
+	- Test size: 2789 sentences
 
-#### From source
-```
-git clone https://github.com/nlp-uoregon/trankit.git
-cd trankit
-pip install -e .
-```
-This would first clone our github repo and install Trankit.
+### Morphosyntactic Parsing
+For this experiment, we use the default configuration of Trankit, where we have a single classifier that predicts all the morphological features.
+The output of this classifier will be a string of form `case-{abc}_num-{def}_vib-{ghi}_gen-{jkl}_tam-{mno}_pers-{xyz}`. We refer to this as a composite classifier setting.
 
-#### Fixing the compatibility issue of Trankit with Transformers
-Previous versions of Trankit have encountered the [compatibility issue](https://github.com/nlp-uoregon/trankit/issues/5) when using recent versions of [transformers](https://github.com/huggingface/transformers). To fix this issue, please install the new version of Trankit as follows:
-```
-pip install trankit==1.1.0
-```
-If you encounter any other problem with the installation, please raise an issue [here](https://github.com/nlp-uoregon/trankit/issues/new) to let us know. Thanks.
+#### Composite Configuration
+||
+|------------------------------------------------------------------------------ |
+| Dependency Head                                                                |
+| Dependency Label                                                               |
+| CAT                                                                            |
+| POS                                                                            |
+| `case_num_vib_gen_tam_pers`|
 
-### Usage
-Trankit can process inputs which are untokenized (raw) or pretokenized strings, at
-both sentence and document level. Currently, Trankit supports the following tasks:
-- Sentence segmentation.
-- Tokenization.
-- Multi-word token expansion.
-- Part-of-speech tagging.
-- Morphological feature tagging.
-- Dependency parsing.
-- Named entity recognition.
-#### Initialize a pretrained pipeline
-The following code shows how to initialize a pretrained pipeline for English; it is instructed to run on GPU, automatically download pretrained models, and store them to the specified cache directory. Trankit will not download pretrained models if they already exist.
-```python
-from trankit import Pipeline
+#### Loss function
 
-# initialize a multilingual pipeline
-p = Pipeline(lang='english', gpu=True, cache_dir='./cache')
-```
+$$L({\theta}) = L_{head} + L_{label} + \sum_1^n L_{c_{i}}$$
+where $L({\theta})$ denotes the total loss function, $L_{head}$ denotes the loss function of the dependency head prediction, $L_{label}$ denotes the loss function of the dependency label prediction, and $L_{c_{i}}$ denotes the loss function of each morphological classifier.
 
-#### Perform all tasks on the input
-After initializing a pretrained pipeline, it can be used to process the input on all tasks as shown below. If the input is a sentence, the tag `is_sent` must be set to True. 
-```python
-from trankit import Pipeline
+In other words, the total loss is the sum of the loss functions for the syntactic features and the morphological features.
+$$L({\theta}) = L_{syntactic} + L_{morphological}$$
 
-p = Pipeline(lang='english', gpu=True, cache_dir='./cache')
-
-######## document-level processing ########
-untokenized_doc = '''Hello! This is Trankit.'''
-pretokenized_doc = [['Hello', '!'], ['This', 'is', 'Trankit', '.']]
-
-# perform all tasks on the input
-processed_doc1 = p(untokenized_doc)
-processed_doc2 = p(pretokenized_doc)
-
-######## sentence-level processing ####### 
-untokenized_sent = '''This is Trankit.'''
-pretokenized_sent = ['This', 'is', 'Trankit', '.']
-
-# perform all tasks on the input
-processed_sent1 = p(untokenized_sent, is_sent=True)
-processed_sent2 = p(pretokenized_sent, is_sent=True)
-```
-Note that, although pretokenized inputs can always be processed, using pretokenized inputs for languages that require multi-word token expansion such as Arabic or French might not be the correct way. Please check out the column `Requires MWT expansion?` of [this table](https://trankit.readthedocs.io/en/latest/pkgnames.html#pretrained-languages-their-code-names) to see if a particular language requires multi-word token expansion or not.  
-For more detailed examples, please check out our [documentation page](https://trankit.readthedocs.io/en/latest/overview.html).
-
-#### Multilingual usage
-Starting from version v1.0.0, Trankit supports a handy [Auto Mode](https://trankit.readthedocs.io/en/latest/news.html#auto-mode-for-multilingual-pipelines) in which users do not have to set a particular language active before processing the input. In the Auto Mode, Trankit will automatically detect the language of the input and use the corresponding language-specific models, thus avoiding switching back and forth between languages in a multilingual pipeline.
-
-```python
-from trankit import Pipeline
-
-p = Pipeline('auto')
-
-# Tokenizing an English input
-en_output = p.tokenize('''I figured I would put it out there anyways.''') 
-
-# POS, Morphological tagging and Dependency parsing a French input
-fr_output = p.posdep('''On pourra toujours parler à propos d'Averroès de "décentrement du Sujet".''')
-
-# NER tagging a Vietnamese input
-vi_output = p.ner('''Cuộc tiêm thử nghiệm tiến hành tại Học viện Quân y, Hà Nội''')
-```
-In this example, the code name `'auto'` is used to initialize a multilingual pipeline in the Auto Mode. For more information, please visit [this page](https://trankit.readthedocs.io/en/latest/news.html#auto-mode-for-multilingual-pipelines). Note that, besides the new Auto Mode, the [manual mode](https://trankit.readthedocs.io/en/latest/overview.html#multilingual-usage) can still be used as before.
-
-#### Building a customized pipeline
-Training customized pipelines is easy with Trankit via the class `TPipeline`. Below we show how we can train a token and sentence splitter on customized data.
-```python
-from trankit import TPipeline
-
-tp = TPipeline(training_config={
-    'task': 'tokenize',
-    'save_dir': './saved_model',
-    'train_txt_fpath': './train.txt',
-    'train_conllu_fpath': './train.conllu',
-    'dev_txt_fpath': './dev.txt',
-    'dev_conllu_fpath': './dev.conllu'
-    }
-)
-
-trainer.train()
-```
-Detailed guidelines for training and loading a customized pipeline can be found [here](https://trankit.readthedocs.io/en/latest/training.html) 
-
-#### Sharing your customized pipelines
-
-In case you want to share your customized pipelines with other users. Please create an issue [here](https://github.com/nlp-uoregon/trankit/issues/new) and provide us the following information:
-
-- Training data that you used to train your models, e.g., data license, data source, and some data statistics (i.e., sizes of training, development, and test data).
-- Performance of your pipelines on your test data using the official [evaluation script](https://universaldependencies.org/conll18/evaluation.html).
-- A downloadable link to your trained model files (a Google drive link would be great).
-After we receive your request, we will check and test your pipelines. Once everything is done, we would make the pipelines accessible by other users via new language codes.
-
-### Acknowledgements
-This project has been supported by the Office of the Director of National Intelligence (ODNI), Intelligence Advanced Research Projects Activity (IARPA), via IARPA Contract No. 2019-19051600006 under the [Better Extraction from Text Towards Enhanced Retrieval (BETTER) Program](https://www.iarpa.gov/index.php/research-programs/better).
-
-We use [XLM-Roberta](https://arxiv.org/abs/1911.02116) and [Adapters](https://arxiv.org/abs/2005.00247) as our shared multilingual encoder for different tasks and languages. The [AdapterHub](https://github.com/Adapter-Hub/adapter-transformers) is used to implement our plug-and-play mechanism with Adapters. To speed up the development process, the implementations for the MWT expander and the lemmatizer are adapted from [Stanza](https://github.com/stanfordnlp/stanza). To implement the language detection module, we leverage the [langid](https://github.com/saffsd/langid.py) library.
+### Adding multiple Classifiers
+- Using the modified trankit code, update the `CLASSES` and the `CLASSIFIER_NAMES` arrays in `custom_classifiers.py`.
+- `CLASSES` is a list of classifiers where each element of the array is a list. If you want to add a classifier that predicts `vib` and `num` together,  then add `[“vib”,”num”]` to `CLASSES` array
+- `CLASS_NAMES` is an array of names of each classifier in `CLASSES` array
+- You can modify `ignore_upos_xpos` variable in the same file to specify whether you want XPOS and UPOS to be considered while computing the loss
+- run `pip install -e .  && python3 train.py` to train the model 
